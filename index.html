@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPHEREx Sky Blink</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js" charset="utf-8"></script>
+<style>
+:root{--ink:#eef1f8;--dim:#a3afcb;--ir:#ffb067;--glass:rgba(9,14,30,.58);--edge:rgba(255,255,255,.12);--field:rgba(255,255,255,.07)}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{background:#050914;color-scheme:dark}
+body{margin:0;color:var(--ink);font:15px/1.55 Inter,system-ui,sans-serif;background:transparent;min-height:100vh}
+/* background image sits on its own fixed layer behind everything; a scrim keeps text legible */
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:radial-gradient(ellipse at 50% 0%,rgba(5,9,20,.35),rgba(5,9,20,.82) 75%),linear-gradient(rgba(5,9,20,.5),rgba(5,9,20,.62)),url("/bg.jpg") center/cover no-repeat}
+main{max-width:1120px;margin:0 auto;padding:36px 22px 56px;display:grid;gap:18px;grid-template-columns:minmax(0,1fr) minmax(0,360px);align-items:start}
+@media(max-width:860px){main{grid-template-columns:1fr;padding:22px 14px 40px}}
+.hero{grid-column:1/-1;padding:6px 2px 10px}
+.eyebrow{display:flex;align-items:center;gap:8px;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ir);font-weight:600}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--ir);box-shadow:0 0 12px var(--ir)}
+h1{font:500 clamp(2.4rem,6vw,3.8rem)/1 Newsreader,Georgia,serif;margin:10px 0 10px;letter-spacing:-.01em}
+.hero p{margin:0;color:var(--dim);max-width:68ch;font-size:1rem}
+.embed .hero,.embed aside{display:none}.embed main{grid-template-columns:1fr;padding:8px}
+.card{background:var(--glass);border:1px solid var(--edge);border-radius:16px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+@supports((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.card{-webkit-backdrop-filter:blur(16px) saturate(1.25);backdrop-filter:blur(16px) saturate(1.25)}}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.card{background:rgba(9,14,30,.9)}}
+.stack{display:grid;gap:18px}
+.stage{position:relative;aspect-ratio:1;background:#04070f;border:1px solid var(--edge);border-radius:12px;overflow:hidden}
+.stage img,.stage svg{position:absolute;inset:0;width:100%;height:100%}
+.stage img{object-fit:contain}
+.ring{position:absolute;left:50%;top:50%;width:14%;aspect-ratio:1;transform:translate(-50%,-50%);border:1.5px solid var(--ir);border-radius:50%;opacity:.85;pointer-events:none;box-shadow:0 0 14px rgba(255,176,103,.35)}
+.msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:28px;color:var(--dim)}
+.bar{display:flex;gap:12px;align-items:center;margin-top:14px}
+.bar input[type=range]{flex:1;accent-color:var(--ir)}
+.cap{margin-top:10px;color:var(--dim);font-size:.86rem;min-height:1.4em}.cap b{color:var(--ink);font-weight:600}
+h2{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:0 0 10px;font-weight:600}
+.grp{display:grid;gap:10px;padding-top:14px;margin-top:14px;border-top:1px solid var(--edge)}
+.grp:first-child{border:0;margin:0;padding:0}
+form{display:block}
+label{display:grid;gap:5px;font-size:.78rem;color:var(--dim);font-weight:500}
+input,select,button{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--edge);border-radius:9px;padding:9px 11px;transition:border-color .15s,background .15s,transform .1s}
+input:hover,select:hover{border-color:rgba(255,255,255,.28)}
+:focus-visible{outline:2px solid var(--ir);outline-offset:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{cursor:pointer}
+.bar button{min-width:76px;font-weight:600}
+button.go{width:100%;margin-top:16px;padding:12px;background:linear-gradient(135deg,#ffc482,#ff9748);color:#1d1204;border:0;font-weight:700;letter-spacing:.02em;box-shadow:0 8px 24px rgba(255,151,72,.28)}
+button.go:hover:not(:disabled){transform:translateY(-1px)}
+button:disabled{opacity:.5;cursor:wait}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{padding:6px 12px;font-size:.82rem;border-radius:999px}
+.chips button:hover{border-color:rgba(255,255,255,.3)}
+.chips button[aria-pressed=true]{border-color:var(--ir);color:var(--ir);background:rgba(255,176,103,.12)}
+.chk{display:flex;gap:16px;font-size:.88rem;color:var(--ink)}.chk label{display:flex;gap:7px;align-items:center;font-size:.88rem;color:var(--ink)}
+.chk input{width:16px;height:16px;padding:0;accent-color:var(--ir)}
+.note{font-size:.78rem;color:var(--dim);margin:12px 0 0;line-height:1.5}
+.card.solid{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(9,14,30,.92)}
+.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.row h2{margin:0}
+.mini{padding:4px 11px;font-size:.74rem;border-radius:999px}
+#al{height:260px;position:relative;background:#04070f;border:1px solid var(--edge);border-radius:12px;overflow:hidden}
+</style>
+</head>
+<body>
+<main>
+<header class="hero">
+  <div class="eyebrow"><i></i>NASA SPHEREx · all-sky near-infrared survey</div>
+  <h1>Sky Blink</h1>
+  <p>Pick a patch of sky and watch SPHEREx's repeat visits play as a short film. Subtract the static sky to make movers pop, stack exposures for depth, and read an on-the-fly spectrum of the centre.</p>
+</header>
+
+<section class="stack">
+  <div class="card">
+    <div class="stage" aria-live="polite">
+      <img id="frame" alt="SPHEREx cutout" hidden>
+      <svg id="ov" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+      <div class="ring" id="ring" hidden></div>
+      <div class="msg" id="msg">Choose a target, then press <b>&nbsp;Load frames&nbsp;</b>.</div>
+    </div>
+    <div class="bar">
+      <button id="play" type="button" disabled>Play</button>
+      <input id="seek" type="range" min="0" max="0" value="0" aria-label="Frame" disabled>
+      <label style="display:flex;gap:6px;align-items:center;font-size:.8rem">Speed
+        <select id="fps"><option value="1">1 fps</option><option value="3" selected>3 fps</option><option value="6">6 fps</option></select></label>
+    </div>
+    <div class="cap" id="cap"></div>
+    <div class="cap" id="ovs"></div>
+  </div>
+  <div class="card" id="specp" hidden>
+    <h2>Spectrum at the centre · MJy/sr above local background</h2>
+    <svg id="spec" viewBox="0 0 320 130" style="width:100%"></svg>
+    <p class="note">One point per displayed frame, so adding exposures or stacking changes it (fewer, less noisy points). Colours are detectors D1–D6. It describes whatever sits at the ring, so it is only meaningful for a stationary source; field of view does not change it.</p>
+  </div>
+</section>
+
+<aside class="stack">
+<form id="form" class="card">
+  <div class="grp"><h2>Target</h2>
+    <div class="chips" id="chips" role="group" aria-label="Example targets"></div>
+    <div class="two">
+      <label>Right ascension<input id="ra" placeholder="133.7951 or 08h55m10.8s"></label>
+      <label>Declination<input id="dec" placeholder="-7.2451 or -07d14m42s"></label>
+    </div>
+  </div>
+  <div class="grp"><h2>Field &amp; band</h2>
+    <div class="two">
+      <label>Field of view (arcmin)<input id="fov" type="number" min="2" max="30" step="1" value="6"></label>
+      <label>Detector band<select id="det">
+        <option value="0">All six</option><option value="1">D1 · 0.75–1.1 µm</option><option value="2" selected>D2 · 1.1–1.6 µm</option>
+        <option value="3">D3 · 1.6–2.4 µm</option><option value="4">D4 · 2.4–3.8 µm</option><option value="5">D5 · 3.8–4.4 µm</option><option value="6">D6 · 4.4–5.0 µm</option></select></label>
+    </div>
+  </div>
+  <div class="grp"><h2>Processing</h2>
+    <div class="two">
+      <label>View<select id="view"><option value="frames">Individual exposures</option><option value="diff">Subtract static sky</option><option value="bands">Stack per detector</option></select></label>
+      <label>Add exposures<select id="bin"><option>1</option><option>2</option><option>4</option><option>8</option></select></label>
+    </div>
+  </div>
+  <div class="grp"><h2>Overlays</h2>
+    <div class="chk"><label><input type="checkbox" id="gaia"> Gaia DR3</label><label><input type="checkbox" id="wise"> AllWISE</label></div>
+  </div>
+  <button class="go" id="load" type="submit">Load frames</button>
+  <p class="note">Larger fields catch faster movers but download more (up to 30′). Each exposure samples a different wavelength, so steady stars can still change brightness. "Subtract static sky" removes the per-detector median: movers show as a bright/dark pair. Gaia and WISE positions are from their own epochs (2016, ~2010), so movers can sit away from their markers.</p>
+</form>
+<div class="card solid"><div class="row"><h2>Context · WISE sky view</h2><button id="alt" type="button" class="mini">Interactive</button></div><div id="al"></div></div>
+</aside>
+</main>
+
+<script>
+const PRESETS=[
+ {id:"barnard",l:"Barnard's Star",name:"Barnard's star",pmra:-798.58,pmdec:10328.12,det:2},
+ {id:"epsindib",l:"ε Indi B",name:"eps Ind B",pmra:3966,pmdec:-2536,det:5,fov:12},
+ {id:"wise0855",l:"WISE 0855",ra:"08h55m10.831s",dec:"-07d14m42.53s",det:6},
+ {id:"rwaur",l:"RW Aurigae",name:"RW Aur",det:2},
+ {id:"rdra",l:"R Draconis",name:"R Dra",det:2}];
+const COL=["#7fd8ff","#8cf0a8","#ffe27a","#ffb067","#ff7a8a","#d59bff"];
+const $=id=>document.getElementById(id), P=new URLSearchParams(location.search);
+let frames=[],i=0,timer=null,cur=null,last=null,al=null,cats={};
+
+if(P.get("embed"))document.body.classList.add("embed");
+let alMode=false;
+function ctx(){const el=$("al"),say=t=>el.innerHTML=`<div class="msg">${t}</div>`;
+ if(!last)return say("Load a target to see its WISE colour view.");
+ const fov=Math.max(last.size*3,0.2);
+ if(alMode){
+  if(!(window.A&&A.init)){alMode=false;$("alt").textContent="Interactive";ctx();return}
+  if(al){al.gotoRaDec(last.ra,last.dec);al.setFoV(fov);return}
+  el.innerHTML="";
+  A.init.then(()=>{al=A.aladin("#al",{survey:"P/allWISE/color",fov,target:`${last.ra} ${last.dec}`,showZoomControl:false})})
+   .catch(()=>{alMode=false;$("alt").textContent="Interactive";ctx()});return}
+ al=null;
+ el.innerHTML=`<img alt="WISE colour view of the field" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentNode.innerHTML='<div class=msg>Could not reach the CDS image service.</div>'" src="/api/context?ra=${last.ra}&dec=${last.dec}&fov=${fov}">`}
+$("alt").onclick=()=>{alMode=!alMode;$("alt").textContent=alMode?"Static":"Interactive";al=null;ctx()};
+ctx();
+
+function pick(p){cur=p;[...$("chips").children].forEach(c=>c.setAttribute("aria-pressed",c.dataset.id===p.id));
+ $("ra").value=p.ra||"";$("dec").value=p.dec||"";if(p.det)$("det").value=p.det;$("fov").value=p.fov||6;}
+PRESETS.forEach(p=>{const b=document.createElement("button");b.type="button";b.textContent=p.l;b.dataset.id=p.id;b.setAttribute("aria-pressed","false");
+ b.onclick=()=>pick(p);$("chips").append(b);});
+["ra","dec"].forEach(id=>$(id).addEventListener("input",()=>{cur=null;[...$("chips").children].forEach(c=>c.setAttribute("aria-pressed","false"))}));
+
+function show(k){i=k;const f=frames[k];$("frame").src=f.img;$("seek").value=k;
+ $("cap").innerHTML=`Frame <b>${k+1}</b> of ${frames.length} · <b>${f.t}</b> · D${f.det}`+(f.wave?` · ~${f.wave.toFixed(2)} µm`:"")+(f.flagged!=null?` · ${f.flagged}% pixels flagged`:"")+(f.rms!=null?` · noise ≈ ${f.rms}`:"")+(last?` · ${(last.size*60).toFixed(0)}′ field`:"")
+  +(last?` · ${last.frames.length} shown of ${last.available} visits`:"")+(last&&last.source==="saved"?` · SAVED COPY (IRSA unreachable)`:"");}
+function stop(){clearInterval(timer);timer=null;$("play").textContent="Play"}
+function play(){if(frames.length<2)return;stop();$("play").textContent="Pause";timer=setInterval(()=>show((i+1)%frames.length),1000/+$("fps").value)}
+$("play").onclick=()=>timer?stop():play();
+$("seek").oninput=e=>{stop();show(+e.target.value)};
+$("fps").onchange=()=>{if(timer)play()};
+addEventListener("keydown",e=>{if(!frames.length||/INPUT|SELECT/.test(e.target.tagName))return;
+ if(e.code==="Space"){e.preventDefault();$("play").click()}
+ if(e.key==="ArrowRight"){stop();show((i+1)%frames.length)}
+ if(e.key==="ArrowLeft"){stop();show((i-1+frames.length)%frames.length)}});
+
+function spectrum(s){$("specp").hidden=false;const W=s.wave,F=s.flux;
+ if(!W.length){$("spec").innerHTML=`<text x="160" y="65" fill="#9aa6c6" font-size="9" text-anchor="middle">No finite flux at the centre of any frame</text>`;return}
+ const x0=Math.min(...W),x1=Math.max(...W),y0=Math.min(...F),y1=Math.max(...F),
+  X=w=>x1>x0?30+(w-x0)/(x1-x0)*280:170,Y=f=>y1>y0?110-(f-y0)/(y1-y0)*95:60;
+ $("spec").innerHTML=`<line x1="30" y1="110" x2="312" y2="110" stroke="#2a3860"/><line x1="30" y1="10" x2="30" y2="110" stroke="#2a3860"/>`
+  +`<text x="30" y="124" fill="#9aa6c6" font-size="8">${x0.toFixed(2)} µm</text><text x="312" y="124" fill="#9aa6c6" font-size="8" text-anchor="end">${x1.toFixed(2)} µm</text>`
+  +`<text x="27" y="14" fill="#9aa6c6" font-size="8" text-anchor="end">${y1.toFixed(2)}</text><text x="27" y="110" fill="#9aa6c6" font-size="8" text-anchor="end">${y0.toFixed(2)}</text>`
+  +W.map((w,k)=>`<circle cx="${X(w)}" cy="${Y(F[k])}" r="2.6" fill="${COL[s.det[k]-1]}"><title>${w.toFixed(2)} µm · ${F[k].toFixed(3)} MJy/sr · D${s.det[k]}</title></circle>`).join("")
+  +(s.approx?`<text x="312" y="9" fill="#ffb067" font-size="7" text-anchor="end">x positions approximate (band centres)</text>`:"");}
+async function overlay(){const svg=$("ov"),st=$("ovs");svg.innerHTML="";st.textContent="";if(!last)return;const fov=last.size;let html="",msgs=[];
+ for(const [id,col,sq] of [["gaia","#7fd8ff",0],["wise","#ff7ad9",1]]){if(!$(id).checked)continue;
+  const key=[id,last.ra,last.dec,fov].join();
+  if(!cats[key])try{const r=await fetch(`/api/catalog?ra=${last.ra}&dec=${last.dec}&size=${fov}&cat=${id}`),j=await r.json();cats[key]=r.ok?j.sources:String(j.detail)}catch(e){cats[key]=String(e)}
+  const s=cats[key];if(typeof s==="string"){delete cats[key];msgs.push(`${id}: ${s}`);continue}
+  let n=0;s.forEach(([ra,dec,m])=>{const x=50-(ra-last.ra)*Math.cos(last.dec*Math.PI/180)/fov*100,y=50-(dec-last.dec)/fov*100;
+   if(x<0||x>100||y<0||y>100)return;n++;const r=m==null?1.2:Math.min(3.2,Math.max(.8,3.6-(m-10)*.2));
+   html+=sq?`<rect x="${x-r}" y="${y-r}" width="${2*r}" height="${2*r}" fill="none" stroke="${col}" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`
+    :`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${col}" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`});
+  msgs.push(`${id==="gaia"?"Gaia":"WISE"}: ${n} sources in view`)}
+ svg.innerHTML=html;st.textContent=msgs.join(" · ")}
+["gaia","wise"].forEach(id=>$(id).onchange=overlay);
+["fov","det","view","bin"].forEach(id=>$(id).onchange=()=>{if(last)$("form").requestSubmit()});
+
+$("form").onsubmit=async e=>{e.preventDefault();stop();
+ const q=new URLSearchParams({size:$("fov").value/60,det:$("det").value,view:$("view").value,bin:$("bin").value});
+ const u=new URLSearchParams({fov:$("fov").value,det:$("det").value,view:$("view").value,bin:$("bin").value});
+ if(cur&&cur.name){q.set("name",cur.name);if(cur.pmra)q.set("pmra",cur.pmra);if(cur.pmdec)q.set("pmdec",cur.pmdec);}
+ else if(!cur&&P.get("name")&&!$("ra").value){q.set("name",P.get("name"))}
+ else{if(!$("ra").value||!$("dec").value){$("msg").hidden=false;$("msg").textContent="Enter both RA and Dec, or pick an example target.";return}
+  q.set("ra",$("ra").value);q.set("dec",$("dec").value);}
+ cur?u.set("target",cur.id):(q.get("name")&&!$("ra").value?u.set("name",q.get("name")):(u.set("ra",$("ra").value),u.set("dec",$("dec").value)));
+ u.set("ov",["gaia","wise"].filter(k=>$(k).checked).join(","));if(P.get("embed"))u.set("embed",1);
+ history.replaceState(null,"","?"+u);
+ $("load").disabled=true;$("load").textContent="Fetching from IRSA…";
+ $("msg").hidden=false;$("msg").textContent="Querying the SPHEREx archive and cutting out frames…";
+ ["frame","ring"].forEach(id=>$(id).hidden=true);$("ov").innerHTML="";
+ try{const r=await fetch("/api/frames?"+q),raw=await r.text();let d;
+  try{d=JSON.parse(raw)}catch(_){throw new Error(`Server returned status ${r.status}: ${raw.slice(0,140)||"empty response"}. Check the uvicorn terminal for the traceback.`)}
+  if(!r.ok)throw new Error(d.detail||"Request failed");
+  last=d;frames=d.frames;$("seek").max=frames.length-1;$("seek").disabled=$("play").disabled=frames.length<2;
+  $("msg").hidden=true;["frame","ring"].forEach(id=>$(id).hidden=false);show(0);spectrum(d.spectrum);overlay();
+  ctx();
+  if(!matchMedia("(prefers-reduced-motion: reduce)").matches)play();
+ }catch(err){$("msg").hidden=false;$("msg").textContent=err.message}
+ $("load").disabled=false;$("load").textContent="Load frames";};
+
+/* URL-driven start: ?target=wise0855 | ?ra=..&dec=.. | ?name=..  &fov= &det= &view= &bin= &ov=gaia,wise &embed=1 */
+{const t=PRESETS.find(p=>p.id===P.get("target"));if(t)pick(t);
+ if(P.get("ra"))$("ra").value=P.get("ra");if(P.get("dec"))$("dec").value=P.get("dec");
+ for(const k of ["fov","det","view","bin"])if(P.get(k))$(k).value=P.get(k);
+ (P.get("ov")||"").split(",").forEach(k=>{if($(k))$(k).checked=true});
+ if(t||P.get("name")||(P.get("ra")&&P.get("dec")))$("form").requestSubmit();}
+</script>
+</body>
+</html>
