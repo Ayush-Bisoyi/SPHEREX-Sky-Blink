@@ -6,8 +6,6 @@ Built for the NASA hackathon challenge: *"Create a public-facing web tool to dis
 
 You enter the coordinates of a patch of sky (or click a preset). The tool finds every SPHEREx image covering that spot, cuts out the patch, aligns the images onto one common grid, and plays them like a blink comparator. Stars hold still. Comets, asteroids, brown dwarfs and variable stars stand out.
 
-> Add a screenshot here: `![Sky Blink](docs/screenshot.png)`
-
 ---
 
 ## Contents
@@ -140,37 +138,6 @@ The `cache/` folder in this repository was generated on **[date]** for the five 
 | **Normal start**, IRSA failing, saved copy exists | Tries IRSA once, then shows the saved copy. The caption adds **"SAVED COPY (IRSA unreachable)"**. Live is retried on the next load. |
 | **Normal start**, IRSA failing, no saved copy | Retries up to 4 times, then shows: "IRSA's search service did not respond… try again in a minute." |
 | **Offline mode** | Uses saved copies first and never waits on the network for anything saved. |
-
-### Offline mode (recommended for live judging)
-
-**macOS / Linux**
-
-```bash
-SKYBLINK_OFFLINE=1 python -m uvicorn app:app --port 8000
-```
-
-**Windows PowerShell**
-
-```powershell
-$env:SKYBLINK_OFFLINE="1"; python -m uvicorn app:app --port 8000
-```
-
-**Windows cmd**
-
-```bat
-set SKYBLINK_OFFLINE=1
-python -m uvicorn app:app --port 8000
-```
-
-### Refreshing or rebuilding the saved copies
-
-While IRSA is working:
-
-```bash
-python app.py
-```
-
-This resolves the five presets and saves, for each: the SPHEREx frames in its preset band and in "All six", the Gaia and AllWISE markers, and the WISE context picture. It prints a `saved...` or `FAILED...` line for every item. To start clean, delete the `cache/` folder first.
 
 ### Limits of saved copies
 
@@ -398,7 +365,6 @@ flowchart LR
 
 ## Credits and licence
 
-- **Team:** [team name and members]
+- **Team:** Sky Blink - Ayush Bisoyi [Ayush-Bisoyi](https://github.com/Ayush-Bisoyi), Rionel Dsouza [rioneldsouza29](https://github.com/rioneldsouza29), Swara Bagade [swara1138](https://github.com/swara1138)
 - SPHEREx data are served by the NASA/IPAC Infrared Science Archive (IRSA). Please follow IRSA's data-citation and acknowledgement guidelines when publishing results.
 - Gaia data: ESA Gaia mission, DPAC. AllWISE: NASA/JPL-Caltech WISE mission. Aladin Lite, Sesame, SIMBAD, VizieR and hips2fits: CDS, Strasbourg.
-- **Licence:** [add a licence, for example MIT]
